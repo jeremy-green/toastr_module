@@ -1,0 +1,125 @@
+<?php
+/**
+* Permissions for the form module
+* @return array permissions array
+*/
+function toastr_permission() {
+  return array(
+    'administer toastr' => array(
+      'title' => t('Administer Toastr Message Settings'),
+      'description' => t('Edit the Toastr message settings.'),
+    ),
+  );
+}
+
+/**
+* Implementation of hook_menu().
+*/
+function toastr_menu() {
+  $items = array();
+
+  //base link to admin settings
+  $items['admin/config/user-interface/toastr'] = array(
+    'title' => 'Toastr Message Settings',
+    'description' => 'Edit the Toastr message settings.',
+    'access arguments' => array('administer toastr'),
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('toastr_settings'),
+  );
+  return $items;
+}
+
+/**
+* Override or insert variables into the page template.
+*
+* @param $vars
+* An array of variables to pass to the theme template.
+* @param $hook
+* The name of the template being rendered ("page" in this case.)
+*/
+function toastr_preprocess_page(&$vars) {
+  $path = drupal_get_path('module', 'toastr');
+  drupal_add_js($path . '/bower_components/toastr/toastr.min.js');
+  drupal_add_css($path . '/bower_components/toastr/toastr.min.css');
+
+  $settings = variable_get('toastr_settings', array());
+
+  $output = '(function($) {';
+  if (!empty($settings)) {
+    $output .= 'toastr.options = {';
+    $toastr_options = array();
+    foreach ($settings as $key => $value) {
+      if (is_numeric($value)) {
+        $value = _toastr_int_bool($value);
+      } else {
+        $value = '"' . $value . '"';
+      }
+      $toastr_options[] = '"' . _toastr_underscore_camelcase($key) . '": ' . $value;
+    }
+    $output .= implode(',', $toastr_options);
+    $output .= '};';
+  }
+
+  foreach (drupal_get_messages(NULL, TRUE) as $type => $message) {
+    switch ($type) {
+      case 'status':
+        $type = 'info';
+        break;
+    }
+    $output .= 'toastr.' . $type . '(\'' . $message[0] . '\');  ';
+  }
+  $output .= '})(jQuery);';
+  drupal_add_js($output, array('type' => 'inline', 'scope' => 'footer'));
+}
+
+function toastr_settings() {
+  $settings = variable_get('toastr_settings', array());
+  $form = array();
+  $form['#tree'] = TRUE;
+
+  $form['toastr']['close_button'] = array(
+    '#type' => 'checkbox',
+    '#title' => t('Close Button'),
+    '#description' => t('Add a close button.'),
+    '#default_value' => !empty($settings['close_button']) ? $settings['close_button'] : 0
+  );
+  $form['toastr']['position_class'] = array(
+    '#type' => 'radios',
+    '#title' => t('Position'),
+    '#description' => t('The position'),
+    '#options' => array(
+      'toast-top-right' => 'Top Right',
+      'toast-bottom-right' => 'Bottom Right',
+      'toast-bottom-left' => 'Bottom Left',
+      'toast-top-left' => 'Top Left',
+      'toast-top-full-width' => 'Top Full Width',
+      'toast-bottom-full-width' => 'Bottom Full Width'
+    ),
+    '#default_value' => !empty($settings['position_class']) ? $settings['position_class'] : 'toast-top-right'
+  );
+
+  $form['submit'] = array(
+    '#type' => 'submit',
+    '#value' => 'Save Configuration'
+  );
+
+  return $form;
+}
+
+function toastr_settings_submit($form, $form_state) {
+  $settings = $form_state['values']['toastr'];
+
+  variable_set('toastr_settings', $settings);
+  drupal_set_message('Settings Saved.');
+}
+
+function _toastr_underscore_camelcase($str) {
+  return preg_replace('/_(.?)/e',"strtoupper('$1')", $str);
+}
+
+function _toastr_int_bool($val) {
+  if ($val) {
+    return 'true';
+  }
+  return 'false';
+}
