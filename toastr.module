@@ -38,9 +38,9 @@ function toastr_menu() {
 * The name of the template being rendered ("page" in this case.)
 */
 function toastr_preprocess_page(&$vars) {
-  $path = drupal_get_path('module', 'toastr');
-  drupal_add_js($path . '/bower_components/toastr/toastr.min.js');
-  drupal_add_css($path . '/bower_components/toastr/toastr.min.css');
+  $library_path = libraries_get_path('toastr-master');
+  drupal_add_js($library_path . '/toastr.min.js');
+  drupal_add_css($library_path . '/toastr.min.css');
 
   $settings = variable_get('toastr_settings', array());
 

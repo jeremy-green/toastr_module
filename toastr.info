@@ -1,4 +1,5 @@
 name = Toastr
 description = The fucking internet bro
 core = 7.x
+dependencies[] = libraries
 package = Mutated Creativity
