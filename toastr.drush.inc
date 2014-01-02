@@ -77,7 +77,7 @@ function drush_toastr_library() {
   $olddir = getcwd();
   chdir($path);
   $zipfile = 'master.zip';
-  $filename - 'toastr-master';
+  $filename = 'toastr-master';
   $dirname = basename('TOASTR_DOWNLOAD_URI', '.zip');
   // Remove any existing Toastr library directory
   if (is_dir($dirname)) {
