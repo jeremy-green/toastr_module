@@ -1,0 +1,23 @@
+<?php
+
+
+function toastr_install() {
+	$initial_settings = array (
+		'close_button' => 0,
+		'position_class' => 'toast-top-right',
+	);
+	variable_set('toastr_settings', $initial_settings);
+	$msg = 'Successfully saved Toastr settings.';
+	toastr_msg($msg);
+}
+
+function toastr_uninstall() {
+	variable_del('toastr_settings');
+	$msg = 'Successfully disabled Toastr.';
+	toastr_msg($msg);
+}
+
+function toastr_msg($msg) {
+	drupal_set_message($msg);
+	watchdog('toastr', $msg);
+}
